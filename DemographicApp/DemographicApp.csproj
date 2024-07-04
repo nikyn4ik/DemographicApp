@@ -68,6 +68,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="ViewModels\" />
+	  <Folder Include="Pages\" />
 	  <Folder Include="Pages\" />
 	  <Folder Include="ViewModels\" />
 	</ItemGroup>
