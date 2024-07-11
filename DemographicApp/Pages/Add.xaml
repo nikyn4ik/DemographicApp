@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DemographicApp.Pages.Add"
+             xmlns:viewModel="clr-namespace:DemographicApp.ViewModels">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <viewModel:AddRegionView x:Key="ViewModel" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <StackLayout Padding="20">
+        <Label Text="Название региона:" />
+        <Entry Text="{Binding Name, Source={StaticResource ViewModel}, Mode=TwoWay}" />
+
+        <Label Text="Широта:" />
+        <Entry Keyboard="Numeric" Text="{Binding Latitude, Source={StaticResource ViewModel}, Mode=TwoWay}" />
+
+        <Label Text="Долгота:" />
+        <Entry Keyboard="Numeric" Text="{Binding Longitude, Source={StaticResource ViewModel}, Mode=TwoWay}" />
+
+        <Button Text="Добавить" Command="{Binding AddRegionCommand, Source={StaticResource ViewModel}}" />
+
+        <Label Text="{Binding ErrorMessage, Source={StaticResource ViewModel}}" TextColor="Red" />
+    </StackLayout>
+</ContentPage>

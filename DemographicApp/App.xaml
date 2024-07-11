@@ -1,7 +1,6 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:DemographicApp"
              x:Class="DemographicApp.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +8,12 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <DataTemplate x:Key="RegionTemplate">
+                <StackLayout Padding="10">
+                    <Label Text="{Binding Name}" FontSize="20"/>
+                    <Label Text="{Binding Population}" FontSize="14" TextColor="Gray"/>
+                </StackLayout>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DemographicDatabase.Models
+namespace Database.Models
 {
     public class Region
     {
@@ -12,12 +11,6 @@ namespace DemographicDatabase.Models
         public string Name { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public int? ParentRegionId { get; set; }
-        public Region ParentRegion { get; set; }
-        public ICollection<Region> ChildRegions { get; set; }
         public ICollection<DemographicData> DemographicData { get; set; }
-
-        [NotMapped]
-        public int Population => DemographicData?.Sum(d => d.Population) ?? 0;
     }
 }

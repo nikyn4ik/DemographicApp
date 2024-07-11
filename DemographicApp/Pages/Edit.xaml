@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DemographicApp.Pages.Edit"
+             xmlns:viewModel="clr-namespace:DemographicApp.ViewModels">
+
+    <ContentPage.BindingContext>
+        <viewModel:EditRegionView/>
+    </ContentPage.BindingContext>
+    
+    <StackLayout Padding="10">
+        <Label Text="Редактирование региона" FontSize="Large" HorizontalOptions="Center" />
+
+        <Entry Placeholder="Название региона" Text="{Binding Name}" />
+        <Entry Placeholder="Широта" Text="{Binding Latitude}" Keyboard="Numeric" />
+        <Entry Placeholder="Долгота" Text="{Binding Longitude}" Keyboard="Numeric" />
+
+        <Button Text="Сохранить изменения" Command="{Binding SaveCommand}" />
+        <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+    </StackLayout>
+</ContentPage>
