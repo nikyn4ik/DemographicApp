@@ -4,6 +4,13 @@
              x:Class="DemographicApp.MainPage">
 
     <StackLayout>
+        <Label Text="Модуль управления демографической информацией"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="Large"
+               Padding="10"
+               TextColor="Black" />
+
         <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
             <Button Text="Добавление" Clicked="AddButton" />
             <Button Text="Сравнение" Clicked="CompareButton"/>
@@ -11,13 +18,15 @@
             <Button Text="Статистика" Clicked="StatisticsButton"/>
         </StackLayout>
 
-        <Label Text="Модуль управления демографической информацией"
-               HorizontalOptions="Center"
-               VerticalOptions="Center"
-               FontSize="Large"
-               Padding="10"
-               TextColor="Black" />
-        <Button Text="Вход" Clicked="LoginButton" HorizontalOptions="End"/>
+        <StackLayout Orientation="Horizontal" HorizontalOptions="End">
+            <Label x:Name="userLabel" 
+                   IsVisible="False" 
+                   VerticalOptions="Center" 
+                   TextColor="Black" 
+                   Margin="0,0,10,0"/>
+            <Button x:Name="loginButton" Text="Вход" Clicked="LoginButton"/>
+            <Button x:Name="logoutButton" Text="Выход" Clicked="LogoutButton" IsVisible="False"/>
+        </StackLayout>
 
         <StackLayout Orientation="Horizontal">
             <Entry x:Name="searchEntry"

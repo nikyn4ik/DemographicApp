@@ -4,18 +4,22 @@
              x:Class="DemographicApp.Pages.Login">
 
     <StackLayout Padding="10">
-        <Label Text="Вход" FontSize="Large" HorizontalOptions="Center" />
+        <Label Text="Вход"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="Large"
+               Padding="10"
+               TextColor="Black" />
 
-        <Label Text="Логин"/>
-        <Entry Text="{Binding Username}" Placeholder="Введите имя пользователя" />
+        <Label Text="Логин" />
+        <Entry x:Name="UsernameEntry" Placeholder="Введите имя пользователя" />
 
         <Label Text="Пароль" />
-        <Entry Text="{Binding Password}" Placeholder="Введите пароль" IsPassword="True" />
+        <Entry x:Name="PasswordEntry" Placeholder="Введите пароль" IsPassword="True" />
 
-        <Button Text="Войти" Command="{Binding LoginCommand}" />
+        <Button Text="Войти" Clicked="OnLoginButtonClicked" />
 
-        <Label Text="{Binding ErrorMessage}" TextColor="Red" />
-        <Button Text="Регистрация"
-                Command="{Binding RegisterCommand}" />
+        <Label x:Name="ErrorMessageLabel" TextColor="Red" />
+        <Button Text="Регистрация" Clicked="OnRegisterButtonClicked" />
     </StackLayout>
 </ContentPage>

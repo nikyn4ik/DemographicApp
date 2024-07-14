@@ -10,71 +10,114 @@ namespace DemographicApp
     {
         private readonly ApplicationContext _context;
         public ObservableCollection<DemographicData> DemographicData { get; set; }
+        private User _currentUser;
 
         public MainPage()
         {
             InitializeComponent();
-
             _context = new ApplicationContext();
-
             DemographicData = new ObservableCollection<DemographicData>();
+            BindingContext = this;
             LoadDataAsync();
+            UpdateLoginStatus();
         }
 
-        private async Task LoadDataAsync()
+        private async void LoadDataAsync()
         {
-            DemographicData.Clear();
-            var data = await _context.DemographicData.Include(d => d.Region).ToListAsync();
-            foreach (var item in data)
+            try
             {
-                DemographicData.Add(item);
+                DemographicData.Clear();
+                var data = await _context.DemographicData.Include(d => d.Region).ToListAsync();
+                foreach (var item in data)
+                {
+                    DemographicData.Add(item);
+                }
+                regionCollectionView.ItemsSource = DemographicData;
             }
-            regionCollectionView.ItemsSource = DemographicData;
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load data: {ex.Message}", "OK");
+            }
         }
 
-        private void AddButton(object sender, EventArgs e)
+        private async void AddButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Add());
+            await Navigation.PushAsync(new Add());
         }
 
-        private void EditButton(object sender, EventArgs e)
+        private async void EditButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Edit());
+            await Navigation.PushAsync(new Edit());
         }
 
-        private void CompareButton(object sender, EventArgs e)
+        private async void CompareButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Compare());
+            await Navigation.PushAsync(new Compare());
         }
 
-        private void ReportsButton(object sender, EventArgs e)
+        private async void ReportsButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Reports());
+            await Navigation.PushAsync(new Reports());
         }
 
-        private void StatisticsButton(object sender, EventArgs e)
+        private async void StatisticsButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Statistics());
+            await Navigation.PushAsync(new Statistics());
         }
 
-        private void LoginButton(object sender, EventArgs e)
+        private async void LoginButton(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new Login());
+            await Navigation.PushAsync(new Login(OnLoginSuccess));
+        }
+
+        private async void LogoutButton(object sender, EventArgs e)
+        {
+            _currentUser = null;
+            UpdateLoginStatus();
+        }
+
+        private void UpdateLoginStatus()
+        {
+            if (_currentUser != null)
+            {
+                userLabel.Text = $"Добро пожаловать, {_currentUser.UserName}!";
+                userLabel.IsVisible = true;
+                loginButton.IsVisible = false;
+                logoutButton.IsVisible = true;
+            }
+            else
+            {
+                userLabel.IsVisible = false;
+                loginButton.IsVisible = true;
+                logoutButton.IsVisible = false;
+            }
+        }
+
+        private void OnLoginSuccess(User user)
+        {
+            _currentUser = user;
+            UpdateLoginStatus();
         }
 
         private async void SearchEntry(object sender, EventArgs e)
         {
             string searchTerm = searchEntry.Text;
-            DemographicData.Clear();
-            var data = await _context.DemographicData
-                                      .Include(d => d.Region)
-                                      .Where(d => d.Region.Name.Contains(searchTerm))
-                                      .ToListAsync();
-            foreach (var item in data)
+            try
             {
-                DemographicData.Add(item);
+                DemographicData.Clear();
+                var data = await _context.DemographicData
+                                          .Include(d => d.Region)
+                                          .Where(d => d.Region.Name.Contains(searchTerm))
+                                          .ToListAsync();
+                foreach (var item in data)
+                {
+                    DemographicData.Add(item);
+                }
             }
-            regionCollectionView.ItemsSource = DemographicData;
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Search failed: {ex.Message}", "OK");
+            }
         }
     }
 }

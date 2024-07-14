@@ -4,15 +4,21 @@
              x:Class="DemographicApp.Pages.CreateAdmin">
 
     <StackLayout Padding="20">
-        <Label Text="Создание администратора" FontSize="Large" HorizontalOptions="Center" />
+        <Label Text="Создание администратора"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="Large"
+               Padding="10"
+               TextColor="Black" />
+
         <Label Text="Имя пользователя:" />
-        <Entry Text="{Binding UserName, Mode=TwoWay}" Placeholder="Введите имя пользователя" />
+        <Entry x:Name="UserNameEntry" Placeholder="Введите имя пользователя" />
 
         <Label Text="Пароль:" />
-        <Entry Text="{Binding Password, Mode=TwoWay}" Placeholder="Введите пароль" IsPassword="True" />
+        <Entry x:Name="PasswordEntry" Placeholder="Введите пароль" IsPassword="True" />
 
-        <Button Text="Зарегистрировать" Command="{Binding RegisterCommand}" />
+        <Button Text="Зарегистрировать" Clicked="OnRegisterButtonClicked" />
 
-        <Label Text="{Binding ErrorMessage}" TextColor="Red" />
+        <Label x:Name="ErrorMessageLabel" TextColor="Red" />
     </StackLayout>
 </ContentPage>

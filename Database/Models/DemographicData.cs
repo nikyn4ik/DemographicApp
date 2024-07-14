@@ -14,6 +14,8 @@ namespace Database.Models
 
         public DateTime Date { get; set; }
         public int Population { get; set; }
+        public int BirthRate { get; set; }
+        public int DeathRate { get; set; }
         public int MalePopulation { get; set; }
         public int FemalePopulation { get; set; }
     }

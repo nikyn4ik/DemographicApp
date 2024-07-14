@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Database.Migrations
 {
     /// <inheritdoc />
-    public partial class FIrst : Migration
+    public partial class First : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -80,6 +80,8 @@ namespace Database.Migrations
                     RegionId = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "date", nullable: false),
                     Population = table.Column<int>(type: "int", nullable: false),
+                    BirthRate = table.Column<int>(type: "int", nullable: false),
+                    DeathRate = table.Column<int>(type: "int", nullable: false),
                     MalePopulation = table.Column<int>(type: "int", nullable: false),
                     FemalePopulation = table.Column<int>(type: "int", nullable: false)
                 },
@@ -102,6 +104,7 @@ namespace Database.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
                     RoleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

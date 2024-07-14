@@ -4,14 +4,22 @@
              x:Class="DemographicApp.Pages.Add">
     <StackLayout Padding="20">
         <Label Text="Добавление региона"
-        HorizontalOptions="Center"
-        VerticalOptions="Center"
-        FontSize="Large"
-        Padding="10"
-        TextColor="Black" />
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="Large"
+               Padding="10"
+               TextColor="Black" />
+
         <Entry x:Name="regionNameEntry" Placeholder="Название региона" />
         <Entry x:Name="latitudeEntry" Placeholder="Широта" Keyboard="Numeric" />
         <Entry x:Name="longitudeEntry" Placeholder="Долгота" Keyboard="Numeric" />
+
+        <Entry x:Name="populationEntry" Placeholder="Численность населения" Keyboard="Numeric" />
+        <Entry x:Name="birthRateEntry" Placeholder="Рождаемость" Keyboard="Numeric" />
+        <Entry x:Name="deathRateEntry" Placeholder="Смертность" Keyboard="Numeric" />
+        <Entry x:Name="malePopulationEntry" Placeholder="Мужское население" Keyboard="Numeric" />
+        <Entry x:Name="femalePopulationEntry" Placeholder="Женское население" Keyboard="Numeric" />
+
         <Button Text="Добавить регион" Clicked="AddRegion_Clicked" />
     </StackLayout>
 </ContentPage>

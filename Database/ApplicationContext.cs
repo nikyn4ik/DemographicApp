@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 using Database.Models;
 
 namespace Database
@@ -18,6 +19,16 @@ namespace Database
             builder.AddConsole();
         });
 
+        public async Task<bool> IsAdminUserExists()
+        {
+            var adminRole = await Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            if (adminRole == null)
+            {
+                return false;
+            }
+
+            return await Users.AnyAsync(u => u.RoleId == adminRole.Id);
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=DemographicApp;Trusted_Connection=True;";
@@ -70,7 +81,7 @@ namespace Database
             }
         }
 
-        public async Task<bool> IsAdminUserExists()
+        public async Task<bool> IsAdminUserExistsAsync()
         {
             var adminRole = await Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole == null)
