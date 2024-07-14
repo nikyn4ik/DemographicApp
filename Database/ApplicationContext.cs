@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Database.Models;
-using System.Threading.Tasks;
 
 namespace Database
 {
@@ -12,6 +11,7 @@ namespace Database
         public DbSet<User> Users { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<ComparisonResult> ComparisonResults { get; set; }
 
         public static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder =>
         {
@@ -35,6 +35,25 @@ namespace Database
             modelBuilder.Entity<DemographicData>()
                 .Property(d => d.Date)
                 .HasColumnType("date");
+
+            modelBuilder.Entity<Report>()
+                .Property(r => r.Title)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<Role>()
+                .Property(r => r.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.UserName)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.UserName)
+                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

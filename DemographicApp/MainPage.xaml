@@ -1,42 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DemographicApp.MainPage"
-             xmlns:viewModel="clr-namespace:DemographicApp.ViewModels">
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <DataTemplate x:Key="RegionTemplate">
-                <StackLayout Padding="10">
-                    <Label Text="{Binding Name}" FontSize="20"/>
-                    <Label Text="{Binding Population}" FontSize="14" TextColor="Gray"/>
-                    <Button Text="Редактировать" Command="{Binding BindingContext.EditRegionCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}" CommandParameter="{Binding .}" />
-                </StackLayout>
-            </DataTemplate>
-        </ResourceDictionary>
-    </ContentPage.Resources>
+             x:Class="DemographicApp.MainPage">
 
     <StackLayout>
-        <StackLayout Orientation="Horizontal" HorizontalOptions="Start">
-            <Button Text="Добавление" Command="{Binding AddRegionView.AddRegionCommand}" IsVisible="{Binding IsAdmin}" />
-            <Button Text="Сравнение" Command="{Binding CompareCommand}"/>
-            <Button Text="Отчётность" Command="{Binding ReportingCommand}"/>
-            <Button Text="Статистика" Command="{Binding StatisticsCommand}"/>
+        <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+            <Button Text="Добавление" Clicked="AddButton" />
+            <Button Text="Сравнение" Clicked="CompareButton"/>
+            <Button Text="Отчётность" Clicked="ReportsButton"/>
+            <Button Text="Статистика" Clicked="StatisticsButton"/>
         </StackLayout>
 
         <Label Text="Модуль управления демографической информацией"
-               HorizontalOptions="CenterAndExpand"
-               FontSize="Large"/>
-
-        <Button Text="Вход" Clicked="OnLoginButtonClicked" HorizontalOptions="End" />
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               FontSize="Large"
+               Padding="10"
+               TextColor="Black" />
+        <Button Text="Вход" Clicked="LoginButton" HorizontalOptions="End"/>
 
         <StackLayout Orientation="Horizontal">
-            <Entry Placeholder="Поиск..." Text="{Binding SearchText}"
-       HorizontalOptions="FillAndExpand"
-       TextChanged="OnSearchTextChanged"/>
-            
-            
-            <Picker SelectedItem="{Binding SelectedSortOption}" HorizontalOptions="End">
+            <Entry x:Name="searchEntry"
+                   Placeholder="Поиск..."
+                   Completed="SearchEntry"
+                   HorizontalOptions="FillAndExpand"/>
+            <Picker x:Name="sortPicker"
+                    HorizontalOptions="End">
                 <Picker.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
                         <x:String>Имя (по возрастанию)</x:String>
@@ -48,12 +37,19 @@
             </Picker>
         </StackLayout>
 
-        <CollectionView ItemsSource="{Binding SortedRegions}"
+        <CollectionView x:Name="regionCollectionView"
                         VerticalOptions="FillAndExpand"
-                        ItemTemplate="{StaticResource RegionTemplate}">
-            <CollectionView.EmptyView>
-                <Label Text="Нет данных" HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand"/>
-            </CollectionView.EmptyView>
+                        EmptyView="Нет данных">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Padding="10">
+                        <Label Text="{Binding Name}" FontSize="20"/>
+                        <Label Text="{Binding Population}" FontSize="14" TextColor="Gray"/>
+                        <Button Text="Редактировать" Clicked="EditButton" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
         </CollectionView>
     </StackLayout>
+
 </ContentPage>
