@@ -3,6 +3,7 @@ using Database.Models;
 using DemographicApp.Pages;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
+using System.Timers;
 
 namespace DemographicApp
 {
@@ -11,6 +12,7 @@ namespace DemographicApp
         private readonly ApplicationContext _context;
         public ObservableCollection<DemographicData> DemographicData { get; set; }
         private User _currentUser;
+        private System.Timers.Timer _searchTimer;
 
         public MainPage()
         {
@@ -20,6 +22,11 @@ namespace DemographicApp
             BindingContext = this;
             LoadDataAsync();
             UpdateLoginStatus();
+
+            _searchTimer = new System.Timers.Timer();
+            _searchTimer.Interval = 500;
+            _searchTimer.Elapsed += OnSearchTimerElapsed;
+            _searchTimer.AutoReset = false;
         }
 
         private async void LoadDataAsync()
@@ -47,7 +54,12 @@ namespace DemographicApp
 
         private async void EditButton(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new Edit());
+            var button = sender as Button;
+            var demographicData = button.BindingContext as DemographicData;
+            if (demographicData != null)
+            {
+                await Navigation.PushAsync(new Edit(demographicData.Id));
+            }
         }
 
         private async void CompareButton(object sender, EventArgs e)
@@ -99,15 +111,26 @@ namespace DemographicApp
             UpdateLoginStatus();
         }
 
-        private async void SearchEntry(object sender, EventArgs e)
+        private void SearchEntryTextChanged(object sender, TextChangedEventArgs e)
         {
-            string searchTerm = searchEntry.Text;
+            _searchTimer.Stop();
+            _searchTimer.Start();
+        }
+
+        private async void OnSearchTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            await SearchAsync(searchEntry.Text);
+        }
+
+        private async Task SearchAsync(string searchTerm)
+        {
+            searchTerm = searchTerm.Replace(" ", "");
             try
             {
                 DemographicData.Clear();
                 var data = await _context.DemographicData
                                           .Include(d => d.Region)
-                                          .Where(d => d.Region.Name.Contains(searchTerm))
+                                          .Where(d => d.Region.Name.Replace(" ", "").Contains(searchTerm))
                                           .ToListAsync();
                 foreach (var item in data)
                 {

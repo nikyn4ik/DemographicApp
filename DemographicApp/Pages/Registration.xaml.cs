@@ -52,7 +52,7 @@ namespace DemographicApp.Pages
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-
+            await Navigation.PopAsync();
             await Navigation.PushAsync(new Login());
         }
     }

@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DemographicApp.Pages.Edit"
-             Title="Edit">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:Class="DemographicApp.Pages.Edit">
+
+    <StackLayout Padding="10">
+        <Label Text="Редактирование демографических данных" FontSize="Large" />
+
+        <Label Text="Имя региона" />
+        <Entry x:Name="regionNameEntry" IsEnabled="False" />
+
+        <Label Text="Население" />
+        <Entry x:Name="populationEntry" Keyboard="Numeric" />
+
+        <Label Text="Рождаемость" />
+        <Entry x:Name="birthRateEntry" Keyboard="Numeric" />
+
+        <Label Text="Смертность" />
+        <Entry x:Name="deathRateEntry" Keyboard="Numeric" />
+
+        <Label Text="Мужское население" />
+        <Entry x:Name="malePopulationEntry" Keyboard="Numeric" />
+
+        <Label Text="Женское население" />
+        <Entry x:Name="femalePopulationEntry" Keyboard="Numeric" />
+
+        <Button Text="Сохранить" Clicked="SaveButtonClicked" />
+    </StackLayout>
+
 </ContentPage>
