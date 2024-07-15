@@ -1,32 +1,69 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Database;
 using Database.Models;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Maui.Controls;
 
 namespace DemographicApp.Pages
 {
     public partial class Compare : ContentPage
     {
         private readonly ApplicationContext _context;
+        private int _nextReportNumber = 1;
+        private readonly object _lock = new object();
 
         public Compare()
         {
             InitializeComponent();
             _context = new ApplicationContext();
             LoadRegions();
+            InitializeReportsFolder();
+            SetNextReportNumberAsync();
         }
 
         private async void LoadRegions()
         {
-            var regions = await _context.Regions.ToListAsync();
-            ParentRegionPicker.ItemsSource = regions;
-            ChildRegionPicker.ItemsSource = regions;
+            try
+            {
+                var regions = await _context.Regions.ToListAsync();
+                ParentRegionPicker.ItemsSource = regions;
+                ChildRegionPicker.ItemsSource = regions;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка загрузки регионов: {ex.Message}", "OK");
+            }
+        }
+
+        private void InitializeReportsFolder()
+        {
+            try
+            {
+                string projectRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string reportsFolder = Path.Combine(projectRoot, "Documentation", "Reports");
+                if (!Directory.Exists(reportsFolder))
+                {
+                    Directory.CreateDirectory(reportsFolder);
+                }
+            }
+            catch (Exception ex)
+            {
+                DisplayAlert("Ошибка", $"Ошибка инициализации папки отчетов: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task SetNextReportNumberAsync()
+        {
+            try
+            {
+                var reports = await _context.Reports.ToListAsync();
+                var latestReport = reports.OrderByDescending(r => r.ReportId).FirstOrDefault();
+                _nextReportNumber = latestReport != null ? latestReport.ReportId + 1 : 1;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка установки номера следующего отчета: {ex.Message}", "OK");
+            }
         }
 
         private async void OnCompareButtonClicked(object sender, EventArgs e)
@@ -40,74 +77,171 @@ namespace DemographicApp.Pages
                 return;
             }
 
-            var parentDemographicData = await _context.DemographicData
-                .Where(d => d.RegionId == parentRegion.Id)
-                .OrderByDescending(d => d.Date)
-                .FirstOrDefaultAsync();
-
-            var childDemographicData = await _context.DemographicData
-                .Where(d => d.RegionId == childRegion.Id)
-                .OrderByDescending(d => d.Date)
-                .FirstOrDefaultAsync();
-
-            if (parentDemographicData == null || childDemographicData == null)
+            try
             {
-                await DisplayAlert("Ошибка", "Демографические данные не найдены для выбранных регионов.", "OK");
-                return;
+                var parentDemographicData = await _context.DemographicData
+                    .Where(d => d.RegionId == parentRegion.Id)
+                    .OrderByDescending(d => d.Date)
+                    .FirstOrDefaultAsync();
+
+                var childDemographicData = await _context.DemographicData
+                    .Where(d => d.RegionId == childRegion.Id)
+                    .OrderByDescending(d => d.Date)
+                    .FirstOrDefaultAsync();
+
+                if (parentDemographicData == null || childDemographicData == null)
+                {
+                    await DisplayAlert("Ошибка", "Демографические данные не найдены для выбранных регионов.", "OK");
+                    return;
+                }
+
+                var parentDataLines = FormatDemographicData(parentRegion.Name, parentDemographicData);
+                var childDataLines = FormatDemographicData(childRegion.Name, childDemographicData);
+                var comparisonResult = CompareAndFormatDemographicData(parentDataLines, childDataLines);
+
+                SaveComparisonResult(parentRegion.Id, childRegion.Id, comparisonResult);
+
+                var reportFileName = $"Report_{_nextReportNumber}.pdf";
+                await GeneratePdfReportAsync(parentRegion, childRegion, parentDataLines, childDataLines, comparisonResult, reportFileName);
+
+                lock (_lock)
+                {
+                    _nextReportNumber++;
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка при выполнении операции сравнения: {ex.Message}", "OK");
+            }
+        }
+
+        private string[] FormatDemographicData(string regionName, DemographicData data)
+        {
+            return new string[]
+            {
+                $"Регион: {regionName}",
+                $"Население: {data.Population}",
+                $"Рождаемость: {data.BirthRate}",
+                $"Смертность: {data.DeathRate}",
+                $"Мужское население: {data.MalePopulation}",
+                $"Женское население: {data.FemalePopulation}"
+            };
+        }
+
+        private string[] CompareAndFormatDemographicData(string[] parentDataLines, string[] childDataLines)
+        {
+            if (parentDataLines.Length != childDataLines.Length)
+            {
+                throw new ArgumentException("Невозможно сравнить данные: количество строк различно.");
             }
 
-            var comparisonResult = CompareDemographicData(parentRegion, childRegion, parentDemographicData, childDemographicData);
+            var comparisonResult = new string[parentDataLines.Length];
 
-            SaveComparisonResult(parentRegion.Id, childRegion.Id, comparisonResult);
-
-            await GeneratePdfReportAsync(parentRegion, childRegion, comparisonResult);
-        }
-
-        private string CompareDemographicData(Database.Models.Region parentRegion, Database.Models.Region childRegion, DemographicData parentData, DemographicData childData)
-        {
-            return $"Сравнение между {parentRegion.Name} и {childRegion.Name}:\n\n" +
-                   $"Разница в населении: {Math.Abs(parentData.Population - childData.Population)}\n" +
-                   $"Разница в рождаемости: {Math.Abs(parentData.BirthRate - childData.BirthRate)}\n" +
-                   $"Разница в смертности: {Math.Abs(parentData.DeathRate - childData.DeathRate)}\n" +
-                   $"Разница в мужском населении: {Math.Abs(parentData.MalePopulation - childData.MalePopulation)}\n" +
-                   $"Разница в женском населении: {Math.Abs(parentData.FemalePopulation - childData.FemalePopulation)}";
-        }
-
-        private void SaveComparisonResult(int parentRegionId, int childRegionId, string comparisonResult)
-        {
-            var result = new ComparisonResult
+            for (int i = 0; i < parentDataLines.Length; i++)
             {
-                ParentRegionId = parentRegionId,
-                ChildRegionId = childRegionId,
-                ComparisonDate = DateTime.Now,
-                ComparisonResultData = comparisonResult
-            };
+                var parentLine = parentDataLines[i].Split(':');
+                var childLine = childDataLines[i].Split(':');
 
-            _context.ComparisonResults.Add(result);
-            _context.SaveChanges();
+                var parentValue = double.Parse(parentLine[1].Trim());
+                var childValue = double.Parse(childLine[1].Trim());
+
+                var difference = parentValue - childValue;
+                comparisonResult[i] = $"{parentLine[0]}: {difference}";
+            }
+
+            return comparisonResult;
         }
 
-        private async Task GeneratePdfReportAsync(Database.Models.Region parentRegion, Database.Models.Region childRegion, string comparisonResult)
+        private void SaveComparisonResult(int parentRegionId, int childRegionId, string[] comparisonResult)
         {
-            string fileName = Path.Combine(FileSystem.AppDataDirectory, "ComparisonResult.pdf");
-
-            await Task.Run(() =>
+            try
             {
-                using (var stream = new FileStream(fileName, FileMode.Create))
+                var result = new Report
                 {
-                    Document document = new Document();
-                    PdfWriter.GetInstance(document, stream);
-                    document.Open();
-                    document.Add(new Paragraph($"Сравнение между {parentRegion.Name} и {childRegion.Name}"));
-                    document.Add(new Paragraph(comparisonResult));
-                    document.Close();
-                }
-            });
+                    ParentRegionId = parentRegionId,
+                    ChildRegionId = childRegionId,
+                    ReportDate = DateTime.Now,
+                    ReportData = string.Join("\n", comparisonResult),
+                    Title = $"Report_{_nextReportNumber}"
+                };
 
-            await Launcher.OpenAsync(new OpenFileRequest
+                _context.Reports.Add(result);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
             {
-                File = new ReadOnlyFile(fileName)
-            });
+                DisplayAlert("Ошибка", $"Ошибка сохранения сравнения: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task GeneratePdfReportAsync(Database.Models.Region parentRegion, Database.Models.Region childRegion, string[] parentDataLines, string[] childDataLines, string[] comparisonResult, string fileName)
+        {
+            try
+            {
+                string projectRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string pdfPath = Path.Combine(projectRoot, "Documentation", "Reports", fileName);
+
+                await Task.Run(() =>
+                {
+                    using (var stream = new FileStream(pdfPath, FileMode.Create))
+                    {
+                        var document = new Document(PageSize.A4);
+                        PdfWriter.GetInstance(document, stream);
+                        document.Open();
+
+                        // Загрузка шрифтов
+                        string fontPath = "C:\\Windows\\Fonts\\arial.ttf";
+                        var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                        var titleFont = new iTextSharp.text.Font(baseFont, 16, iTextSharp.text.Font.BOLD);
+                        var regularFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.NORMAL);
+
+                        // Добавление данных каждого региона с заголовком
+                        foreach (var line in parentDataLines)
+                        {
+                            Paragraph paragraph = new Paragraph(line, titleFont)
+                            {
+                                SpacingAfter = 10f
+                            };
+                            document.Add(paragraph);
+                        }
+
+                        document.NewPage();
+
+                        foreach (var line in childDataLines)
+                        {
+                            Paragraph paragraph = new Paragraph(line, titleFont)
+                            {
+                                SpacingAfter = 10f
+                            };
+                            document.Add(paragraph);
+                        }
+
+                        Paragraph comparisonHeader = new Paragraph($"Разница между {parentRegion.Name} и {childRegion.Name}:\n\n", titleFont)
+                        {
+                            SpacingBefore = 20f,
+                            SpacingAfter = 10f
+                        };
+                        document.Add(comparisonHeader);
+
+                        foreach (var line in comparisonResult)
+                        {
+                            Paragraph paragraph = new Paragraph(line, regularFont)
+                            {
+                                SpacingAfter = 10f
+                            };
+                            document.Add(paragraph);
+                        }
+
+                        document.Close();
+                    }
+                });
+
+                await DisplayAlert("Отчет создан", $"Отчет сохранен в папке Documentation/Reports под именем {fileName}", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка при генерации PDF отчета: {ex.Message}", "OK");
+            }
         }
     }
 }

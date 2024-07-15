@@ -1,18 +1,34 @@
-﻿using Database;
+﻿using Microsoft.EntityFrameworkCore;
 using Database.Models;
-using DemographicApp.Pages;
-using Microsoft.EntityFrameworkCore;
+using Database;
 using System.Collections.ObjectModel;
 using System.Timers;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using DemographicApp.Pages;
 
 namespace DemographicApp
 {
-    public partial class MainPage : ContentPage
+    public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
         private readonly ApplicationContext _context;
         public ObservableCollection<DemographicData> DemographicData { get; set; }
         private User _currentUser;
         private System.Timers.Timer _searchTimer;
+
+        private bool _isAdmin;
+        public bool IsAdmin
+        {
+            get => _isAdmin;
+            set
+            {
+                if (_isAdmin != value)
+                {
+                    _isAdmin = value;
+                    OnPropertyChanged(nameof(IsAdmin));
+                }
+            }
+        }
 
         public MainPage()
         {
@@ -49,7 +65,14 @@ namespace DemographicApp
 
         private async void AddButton(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new Add());
+            var addPage = new Add();
+            addPage.RegionAdded += OnRegionAdded;
+            await Navigation.PushAsync(addPage);
+        }
+
+        private async void OnRegionAdded(object sender, EventArgs e)
+        {
+            LoadDataAsync(); // Обновляем список данных после добавления региона
         }
 
         private async void EditButton(object sender, EventArgs e)
@@ -82,9 +105,10 @@ namespace DemographicApp
             await Navigation.PushAsync(new Login(OnLoginSuccess));
         }
 
-        private async void LogoutButton(object sender, EventArgs e)
+        private void LogoutButton(object sender, EventArgs e)
         {
             _currentUser = null;
+            IsAdmin = false;
             UpdateLoginStatus();
         }
 
@@ -96,12 +120,16 @@ namespace DemographicApp
                 userLabel.IsVisible = true;
                 loginButton.IsVisible = false;
                 logoutButton.IsVisible = true;
+
+                // Установить роль текущего пользователя
+                IsAdmin = _currentUser.RoleId == 1;
             }
             else
             {
                 userLabel.IsVisible = false;
                 loginButton.IsVisible = true;
                 logoutButton.IsVisible = false;
+                IsAdmin = false;
             }
         }
 
@@ -141,6 +169,13 @@ namespace DemographicApp
             {
                 await DisplayAlert("Error", $"Search failed: {ex.Message}", "OK");
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

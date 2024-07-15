@@ -23,10 +23,18 @@ namespace DemographicApp.Pages
 
         private async void LoadReports()
         {
-            var reports = await _context.Reports.ToListAsync();
-            foreach (var report in reports)
+            try
             {
-                ReportsCollection.Add(report);
+                var reports = await _context.Reports.ToListAsync();
+                ReportsCollection.Clear();
+                foreach (var report in reports)
+                {
+                    ReportsCollection.Add(report);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка загрузки отчетов: {ex.Message}", "OK");
             }
         }
 
@@ -36,15 +44,29 @@ namespace DemographicApp.Pages
             if (selectedReport == null)
                 return;
 
-            string fileName = Path.Combine(FileSystem.AppDataDirectory, $"{selectedReport.Title}.pdf");
-            File.WriteAllBytes(fileName, Convert.FromBase64String(selectedReport.ReportData));
+            string fileName = $"{selectedReport.Title}.pdf";
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Documentation", "Reports", fileName);
 
-            await Launcher.OpenAsync(new OpenFileRequest
+            try
             {
-                File = new ReadOnlyFile(fileName)
-            });
+                if (File.Exists(filePath))
+                {
+                    await Launcher.OpenAsync(new OpenFileRequest
+                    {
+                        File = new ReadOnlyFile(filePath)
+                    });
+                }
+                else
+                {
+                    await DisplayAlert("Ошибка", "Файл отчета не найден", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Ошибка при открытии файла отчета: {ex.Message}", "OK");
+            }
 
-            ((CollectionView)sender).SelectedItem = null; // Deselect the item
+            ((CollectionView)sender).SelectedItem = null;
         }
     }
 }

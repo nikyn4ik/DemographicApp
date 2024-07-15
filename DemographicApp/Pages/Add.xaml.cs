@@ -6,6 +6,7 @@ namespace DemographicApp.Pages
     public partial class Add : ContentPage
     {
         private readonly ApplicationContext _context;
+        public event EventHandler RegionAdded;
 
         public Add()
         {
@@ -79,6 +80,7 @@ namespace DemographicApp.Pages
             await _context.SaveChangesAsync();
 
             await DisplayAlert("Успех", "Новый регион и данные успешно добавлены", "OK");
+            RegionAdded?.Invoke(this, EventArgs.Empty);
             await Navigation.PopAsync();
         }
     }

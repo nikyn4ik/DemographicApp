@@ -35,28 +35,48 @@ namespace DemographicApp.Pages
                     malePopulationEntry.Text = _demographicData.MalePopulation.ToString();
                     femalePopulationEntry.Text = _demographicData.FemalePopulation.ToString();
                 }
+                else
+                {
+                    await DisplayAlert("Ошибка", "Демографические данные не найдены", "OK");
+                }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Ошибка", $"Не обновился: {ex.Message}", "OK");
+                await DisplayAlert("Ошибка", $"Ошибка при загрузке данных: {ex.Message}", "OK");
             }
         }
-
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
             try
             {
-                _demographicData.Population = int.Parse(populationEntry.Text);
-                _demographicData.BirthRate = int.Parse(birthRateEntry.Text);
-                _demographicData.DeathRate = int.Parse(deathRateEntry.Text);
-                _demographicData.MalePopulation = int.Parse(malePopulationEntry.Text);
-                _demographicData.FemalePopulation = int.Parse(femalePopulationEntry.Text);
+                if (_demographicData == null)
+                {
+                    await DisplayAlert("Ошибка", "Демографические данные не загружены", "OK");
+                    return;
+                }
 
-                _context.DemographicData.Update(_demographicData);
-                await _context.SaveChangesAsync();
+                if (int.TryParse(populationEntry.Text, out int population) &&
+                    int.TryParse(birthRateEntry.Text, out int birthRate) &&
+                    int.TryParse(deathRateEntry.Text, out int deathRate) &&
+                    int.TryParse(malePopulationEntry.Text, out int malePopulation) &&
+                    int.TryParse(femalePopulationEntry.Text, out int femalePopulation))
+                {
+                    _demographicData.Population = population;
+                    _demographicData.BirthRate = birthRate;
+                    _demographicData.DeathRate = deathRate;
+                    _demographicData.MalePopulation = malePopulation;
+                    _demographicData.FemalePopulation = femalePopulation;
 
-                await DisplayAlert("Успех", "Данные обновлены", "OK");
-                await Navigation.PopAsync();
+                    _context.DemographicData.Update(_demographicData);
+                    await _context.SaveChangesAsync();
+
+                    await DisplayAlert("Успех", "Данные обновлены", "OK");
+                    await Navigation.PopAsync();
+                }
+                else
+                {
+                    await DisplayAlert("Ошибка", "Некорректный ввод данных", "OK");
+                }
             }
             catch (Exception ex)
             {

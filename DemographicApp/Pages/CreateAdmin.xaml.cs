@@ -6,8 +6,8 @@ namespace DemographicApp.Pages
 {
     public partial class CreateAdmin : ContentPage
     {
-
         private readonly ApplicationContext _context;
+
         public CreateAdmin(ApplicationContext context)
         {
             InitializeComponent();
@@ -25,9 +25,9 @@ namespace DemographicApp.Pages
                 return;
             }
 
-            using (var context = new ApplicationContext())
+            try
             {
-                var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+                var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
                 if (adminRole != null)
                 {
                     var user = new User
@@ -37,11 +37,19 @@ namespace DemographicApp.Pages
                         RoleId = adminRole.Id
                     };
 
-                    context.Users.Add(user);
-                    await context.SaveChangesAsync();
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
 
                     Application.Current.MainPage = new MainPage();
                 }
+                else
+                {
+                    ErrorMessageLabel.Text = "Роль администратора не найдена.";
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessageLabel.Text = $"Ошибка: {ex.Message}";
             }
         }
     }
