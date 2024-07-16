@@ -11,49 +11,55 @@ namespace DemographicApp
 {
     public partial class MainPage : ContentPage, INotifyPropertyChanged
     {
-        private readonly ApplicationContext _context;
         public ObservableCollection<DemographicData> DemographicData { get; set; }
         private User _currentUser;
         private System.Timers.Timer _searchTimer;
 
         private bool _isAdmin;
-        public bool IsAdmin
-        {
-            get => _isAdmin;
-            set
-            {
-                if (_isAdmin != value)
-                {
-                    _isAdmin = value;
-                    OnPropertyChanged(nameof(IsAdmin));
-                }
-            }
-        }
+        public bool IsAdmin { get; set; }
 
         public MainPage()
         {
             InitializeComponent();
-            _context = new ApplicationContext();
             DemographicData = new ObservableCollection<DemographicData>();
             BindingContext = this;
+            IsAdmin = true;
+            _searchTimer = new System.Timers.Timer
+            {
+                Interval = 500,
+                AutoReset = false
+            };
+            _searchTimer.Elapsed += OnSearchTimerElapsed;
+
             LoadDataAsync();
             UpdateLoginStatus();
+        }
 
-            _searchTimer = new System.Timers.Timer();
-            _searchTimer.Interval = 500;
-            _searchTimer.Elapsed += OnSearchTimerElapsed;
-            _searchTimer.AutoReset = false;
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            LoadDataAsync(); 
         }
 
         private async void LoadDataAsync()
         {
-            DemographicData.Clear();
-                var data = await _context.DemographicData.Include(d => d.Region).ToListAsync();
-                foreach (var item in data)
+            try
+            {
+                using (var context = new ApplicationContext())
                 {
-                    DemographicData.Add(item);
+                    var data = await context.DemographicData.Include(d => d.Region).ToListAsync();
+                    DemographicData.Clear();
+                    foreach (var item in data)
+                    {
+                        DemographicData.Add(item);
+                    }
+                    regionCollectionView.ItemsSource = DemographicData;
                 }
-                regionCollectionView.ItemsSource = DemographicData;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to load data: {ex.Message}", "OK");
+            }
         }
 
         private async void AddButton(object sender, EventArgs e)
@@ -74,8 +80,15 @@ namespace DemographicApp
             var demographicData = button.BindingContext as DemographicData;
             if (demographicData != null)
             {
-                await Navigation.PushAsync(new Edit(demographicData.Id));
+                var editPage = new Edit(demographicData.Id);
+                editPage.RegionEdited += OnRegionEdited;
+                await Navigation.PushAsync(editPage);
             }
+        }
+
+        private async void OnRegionEdited(object sender, EventArgs e)
+        {
+            LoadDataAsync();
         }
 
         private async void CompareButton(object sender, EventArgs e)
@@ -113,7 +126,6 @@ namespace DemographicApp
                 userLabel.IsVisible = true;
                 loginButton.IsVisible = false;
                 logoutButton.IsVisible = true;
-
                 IsAdmin = _currentUser.RoleId == 1;
             }
             else
@@ -147,14 +159,17 @@ namespace DemographicApp
             searchTerm = searchTerm.Replace(" ", "");
             try
             {
-                DemographicData.Clear();
-                var data = await _context.DemographicData
-                                          .Include(d => d.Region)
-                                          .Where(d => d.Region.Name.Replace(" ", "").Contains(searchTerm))
-                                          .ToListAsync();
-                foreach (var item in data)
+                using (var context = new ApplicationContext())
                 {
-                    DemographicData.Add(item);
+                    var data = await context.DemographicData
+                                            .Include(d => d.Region)
+                                            .Where(d => d.Region.Name.Replace(" ", "").Contains(searchTerm))
+                                            .ToListAsync();
+                    DemographicData.Clear();
+                    foreach (var item in data)
+                    {
+                        DemographicData.Add(item);
+                    }
                 }
             }
             catch (Exception ex)

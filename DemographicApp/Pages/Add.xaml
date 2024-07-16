@@ -10,16 +10,14 @@
                Padding="10"
                TextColor="Black" />
 
-        <Entry x:Name="regionNameEntry" Placeholder="Название региона" />
-        <Entry x:Name="latitudeEntry" Placeholder="Широта" Keyboard="Numeric" />
-        <Entry x:Name="longitudeEntry" Placeholder="Долгота" Keyboard="Numeric" />
-
-        <Entry x:Name="populationEntry" Placeholder="Численность населения" Keyboard="Numeric" />
-        <Entry x:Name="birthRateEntry" Placeholder="Рождаемость" Keyboard="Numeric" />
-        <Entry x:Name="deathRateEntry" Placeholder="Смертность" Keyboard="Numeric" />
-        <Entry x:Name="malePopulationEntry" Placeholder="Мужское население" Keyboard="Numeric" />
-        <Entry x:Name="femalePopulationEntry" Placeholder="Женское население" Keyboard="Numeric" />
-
-        <Button Text="Добавить регион" Clicked="AddRegion_Clicked" />
+        <StackLayout Padding="10">
+            <Entry x:Name="RegionNameEntry" Placeholder="Название региона" />
+            <Entry x:Name="PopulationEntry" Placeholder="Население" Keyboard="Numeric" />
+            <Entry x:Name="BirthRateEntry" Placeholder="Рождаемость" Keyboard="Numeric" />
+            <Entry x:Name="DeathRateEntry" Placeholder="Смертность" Keyboard="Numeric" />
+            <Entry x:Name="MalePopulationEntry" Placeholder="Мужское население" Keyboard="Numeric" />
+            <Entry x:Name="FemalePopulationEntry" Placeholder="Женское население" Keyboard="Numeric" />
+            <Button Text="Сохранить" Clicked="OnSaveButtonClicked" />
+        </StackLayout>
     </StackLayout>
 </ContentPage>

@@ -15,11 +15,10 @@ namespace Database.Models
 
         public DateTime GeneratedOn { get; set; }
 
-        public string GeneratedBy { get; set; }
+        public string? GeneratedBy { get; set; }
 
         public string ReportData { get; set; }
 
-        // Additional properties as needed
         public int ParentRegionId { get; set; }
 
         public int ChildRegionId { get; set; }

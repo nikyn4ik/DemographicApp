@@ -1,6 +1,8 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DemographicApp.MainPage"
+             x:Name="mainPage"
              Title="Demographic Management">
 
     <StackLayout>
@@ -12,7 +14,8 @@
                TextColor="Black" />
 
         <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
-            <Button x:Name="addDataButton" Text="Добавление" Clicked="AddButton" IsVisible="{Binding IsAdmin}" />
+            <Button x:Name="addDataButton" Text="Добавление" Clicked="AddButton" />
+            <!--<Button x:Name="addDataButton" Text="Добавление" Clicked="AddButton" IsVisible="{Binding IsAdmin}" />-->
             <Button Text="Сравнение" Clicked="CompareButton"/>
             <Button Text="Отчётность" Clicked="ReportsButton"/>
             <Button Text="Статистика" Clicked="StatisticsButton"/>
@@ -54,7 +57,8 @@
                     <StackLayout Padding="10">
                         <Label Text="{Binding Region.Name}" FontSize="20"/>
                         <Label Text="{Binding Population}" FontSize="14" TextColor="Gray"/>
-                        <Button Text="Редактировать" Clicked="EditButton" IsVisible="{Binding Source={x:Reference MainPage}, Path=IsAdmin}" />
+                        <Button Text="Редактировать" Clicked="EditButton" />
+                        <!--<Button Text="Редактировать" Clicked="EditButton" IsVisible="{Binding Source={x:Reference MainPage}, Path=IsAdmin}" />-->
                     </StackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

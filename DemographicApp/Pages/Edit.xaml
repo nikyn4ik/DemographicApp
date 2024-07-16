@@ -7,22 +7,22 @@
         <Label Text="Редактирование демографических данных" FontSize="Large" />
 
         <Label Text="Имя региона" />
-        <Entry x:Name="regionNameEntry" IsEnabled="False" />
+        <Entry x:Name="RegionNameEntry" IsEnabled="False" />
 
         <Label Text="Население" />
-        <Entry x:Name="populationEntry" Keyboard="Numeric" />
+        <Entry x:Name="PopulationEntry" Keyboard="Numeric" />
 
         <Label Text="Рождаемость" />
-        <Entry x:Name="birthRateEntry" Keyboard="Numeric" />
+        <Entry x:Name="BirthRateEntry" Keyboard="Numeric" />
 
         <Label Text="Смертность" />
-        <Entry x:Name="deathRateEntry" Keyboard="Numeric" />
+        <Entry x:Name="DeathRateEntry" Keyboard="Numeric" />
 
         <Label Text="Мужское население" />
-        <Entry x:Name="malePopulationEntry" Keyboard="Numeric" />
+        <Entry x:Name="MalePopulationEntry" Keyboard="Numeric" />
 
         <Label Text="Женское население" />
-        <Entry x:Name="femalePopulationEntry" Keyboard="Numeric" />
+        <Entry x:Name="FemalePopulationEntry" Keyboard="Numeric" />
 
         <Button Text="Сохранить" Clicked="SaveButtonClicked" />
     </StackLayout>

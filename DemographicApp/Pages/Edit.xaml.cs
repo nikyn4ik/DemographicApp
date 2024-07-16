@@ -1,5 +1,5 @@
-using Database;
 using Database.Models;
+using Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace DemographicApp.Pages
@@ -30,12 +30,12 @@ namespace DemographicApp.Pages
 
                 if (_demographicData != null)
                 {
-                    regionNameEntry.Text = _demographicData.Region.Name;
-                    populationEntry.Text = _demographicData.Population.ToString();
-                    birthRateEntry.Text = _demographicData.BirthRate.ToString();
-                    deathRateEntry.Text = _demographicData.DeathRate.ToString();
-                    malePopulationEntry.Text = _demographicData.MalePopulation.ToString();
-                    femalePopulationEntry.Text = _demographicData.FemalePopulation.ToString();
+                    RegionNameEntry.Text = _demographicData.Region.Name;
+                    PopulationEntry.Text = _demographicData.Population.ToString();
+                    BirthRateEntry.Text = _demographicData.BirthRate.ToString();
+                    DeathRateEntry.Text = _demographicData.DeathRate.ToString();
+                    MalePopulationEntry.Text = _demographicData.MalePopulation.ToString();
+                    FemalePopulationEntry.Text = _demographicData.FemalePopulation.ToString();
                 }
                 else
                 {
@@ -58,11 +58,12 @@ namespace DemographicApp.Pages
                     return;
                 }
 
-                if (int.TryParse(populationEntry.Text, out int population) &&
-                    int.TryParse(birthRateEntry.Text, out int birthRate) &&
-                    int.TryParse(deathRateEntry.Text, out int deathRate) &&
-                    int.TryParse(malePopulationEntry.Text, out int malePopulation) &&
-                    int.TryParse(femalePopulationEntry.Text, out int femalePopulation))
+                _demographicData.Region.Name = RegionNameEntry.Text;
+                if (int.TryParse(PopulationEntry.Text, out int population) &&
+                    int.TryParse(BirthRateEntry.Text, out int birthRate) &&
+                    int.TryParse(DeathRateEntry.Text, out int deathRate) &&
+                    int.TryParse(MalePopulationEntry.Text, out int malePopulation) &&
+                    int.TryParse(FemalePopulationEntry.Text, out int femalePopulation))
                 {
                     _demographicData.Population = population;
                     _demographicData.BirthRate = birthRate;
@@ -70,22 +71,19 @@ namespace DemographicApp.Pages
                     _demographicData.MalePopulation = malePopulation;
                     _demographicData.FemalePopulation = femalePopulation;
 
-                    _context.DemographicData.Update(_demographicData);
                     await _context.SaveChangesAsync();
 
-                    RegionEdited?.Invoke(this, EventArgs.Empty); // Вызываем событие при успешном сохранении
-
-                    await DisplayAlert("Успех", "Данные обновлены", "OK");
+                    RegionEdited?.Invoke(this, EventArgs.Empty);
                     await Navigation.PopAsync();
                 }
                 else
                 {
-                    await DisplayAlert("Ошибка", "Некорректный ввод данных", "OK");
+                    await DisplayAlert("Ошибка", "Некорректные данные", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Ошибка", $"Неудачное сохранение: {ex.Message}", "OK");
+                await DisplayAlert("Ошибка", $"Ошибка сохранения данных: {ex.Message}", "OK");
             }
         }
     }
