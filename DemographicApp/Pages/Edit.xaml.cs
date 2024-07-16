@@ -10,6 +10,8 @@ namespace DemographicApp.Pages
         private int _demographicDataId;
         private DemographicData _demographicData;
 
+        public event EventHandler RegionEdited;
+
         public Edit(int demographicDataId)
         {
             InitializeComponent();
@@ -45,6 +47,7 @@ namespace DemographicApp.Pages
                 await DisplayAlert("Ошибка", $"Ошибка при загрузке данных: {ex.Message}", "OK");
             }
         }
+
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
             try
@@ -69,6 +72,8 @@ namespace DemographicApp.Pages
 
                     _context.DemographicData.Update(_demographicData);
                     await _context.SaveChangesAsync();
+
+                    RegionEdited?.Invoke(this, EventArgs.Empty); // Вызываем событие при успешном сохранении
 
                     await DisplayAlert("Успех", "Данные обновлены", "OK");
                     await Navigation.PopAsync();

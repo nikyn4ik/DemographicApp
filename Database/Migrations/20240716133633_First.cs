@@ -46,16 +46,19 @@ namespace Database.Migrations
                 name: "Reports",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ReportId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     GeneratedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     GeneratedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReportData = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ReportData = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParentRegionId = table.Column<int>(type: "int", nullable: false),
+                    ChildRegionId = table.Column<int>(type: "int", nullable: false),
+                    ReportDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reports", x => x.Id);
+                    table.PrimaryKey("PK_Reports", x => x.ReportId);
                 });
 
             migrationBuilder.CreateTable(

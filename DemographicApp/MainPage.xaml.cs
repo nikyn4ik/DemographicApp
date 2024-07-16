@@ -47,20 +47,13 @@ namespace DemographicApp
 
         private async void LoadDataAsync()
         {
-            try
-            {
-                DemographicData.Clear();
+            DemographicData.Clear();
                 var data = await _context.DemographicData.Include(d => d.Region).ToListAsync();
                 foreach (var item in data)
                 {
                     DemographicData.Add(item);
                 }
                 regionCollectionView.ItemsSource = DemographicData;
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error", $"Failed to load data: {ex.Message}", "OK");
-            }
         }
 
         private async void AddButton(object sender, EventArgs e)
@@ -72,7 +65,7 @@ namespace DemographicApp
 
         private async void OnRegionAdded(object sender, EventArgs e)
         {
-            LoadDataAsync(); // Обновляем список данных после добавления региона
+            LoadDataAsync();
         }
 
         private async void EditButton(object sender, EventArgs e)
@@ -121,7 +114,6 @@ namespace DemographicApp
                 loginButton.IsVisible = false;
                 logoutButton.IsVisible = true;
 
-                // Установить роль текущего пользователя
                 IsAdmin = _currentUser.RoleId == 1;
             }
             else

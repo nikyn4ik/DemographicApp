@@ -110,11 +110,14 @@ namespace Database.Migrations
 
             modelBuilder.Entity("Database.Models.Report", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ReportId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+
+                    b.Property<int>("ChildRegionId")
+                        .HasColumnType("int");
 
                     b.Property<string>("GeneratedBy")
                         .IsRequired()
@@ -123,16 +126,22 @@ namespace Database.Migrations
                     b.Property<DateTime>("GeneratedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("ParentRegionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ReportData")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReportDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("ReportId");
 
                     b.ToTable("Reports");
                 });
