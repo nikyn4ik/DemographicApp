@@ -8,10 +8,8 @@ namespace Database.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
         public int RegionId { get; set; }
         public Region Region { get; set; }
-
         public DateTime Date { get; set; }
         public int Population { get; set; }
         public int BirthRate { get; set; }

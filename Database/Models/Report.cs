@@ -12,17 +12,11 @@ namespace Database.Models
         [Required]
         [StringLength(100)]
         public string Title { get; set; }
-
         public DateTime GeneratedOn { get; set; }
-
         public string? GeneratedBy { get; set; }
-
         public string ReportData { get; set; }
-
         public int ParentRegionId { get; set; }
-
         public int ChildRegionId { get; set; }
-
         public DateTime ReportDate { get; set; }
     }
 }
