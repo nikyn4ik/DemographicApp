@@ -4,12 +4,20 @@
              x:Class="DemographicApp.Pages.Statistics">
 
     <StackLayout Padding="10">
+        <Label Text="Статистика" FontSize="Large" VerticalOptions="Center" HorizontalOptions="Center" />
         <Label Text="Выберите родительский регион:"/>
         <Picker x:Name="FirstRegionPicker" SelectedIndexChanged="OnRegionSelected"/>
-        <Label Text="Выберите дочерний регион: "/>
+        <Label Text="Выберите дочерний регион:"/>
         <Picker x:Name="SecondRegionPicker" SelectedIndexChanged="OnRegionSelected"/>
-        <Label Text="Линейная диаграмма:"/>
+        <Label Text="Выберите пункт для диаграммы:"/>
+        <Picker x:Name="StatTypePicker" SelectedIndexChanged="OnStatTypeSelected">
+            <Picker.Items>
+                <x:String>Население</x:String>
+                <x:String>Рождаемость</x:String>
+                <x:String>Смертность</x:String>
+            </Picker.Items>
+        </Picker>
+        <Label Text="Диаграмма:"/>
         <skia:SKCanvasView x:Name="canvasView" PaintSurface="OnCanvasViewPaintSurface" HeightRequest="300"/>
     </StackLayout>
 </ContentPage>
-    
