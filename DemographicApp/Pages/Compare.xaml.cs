@@ -1,8 +1,12 @@
 using Database;
 using Database.Models;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
+using iText.Kernel.Pdf;
+using iText.Kernel.Font;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
+using Style = iText.Layout.Style;
 
 namespace DemographicApp.Pages
 {
@@ -126,6 +130,7 @@ namespace DemographicApp.Pages
                 $"Женское население: {data.FemalePopulation}"
             };
         }
+
         private void SaveComparisonResult(int parentRegionId, int childRegionId, string[] comparisonResult)
         {
             try
@@ -147,6 +152,7 @@ namespace DemographicApp.Pages
                 DisplayAlert("Ошибка", $"Ошибка сохранения сравнения: {ex.Message}", "OK");
             }
         }
+
         private string[] CompareAndFormatDemographicData(string[] parentDataLines, string[] childDataLines)
         {
             if (parentDataLines.Length != childDataLines.Length)
@@ -173,6 +179,7 @@ namespace DemographicApp.Pages
                     comparisonResult[0] = $"Регионы: {parentValueStr} - {childValueStr}";
                     continue;
                 }
+
                 if (!double.TryParse(parentValueStr, out var parentValue) || !double.TryParse(childValueStr, out var childValue))
                 {
                     throw new FormatException($"Неверный формат числового значения в строке {i}: {parentValueStr} или {childValueStr}");
@@ -185,11 +192,6 @@ namespace DemographicApp.Pages
             return comparisonResult;
         }
 
-        private bool IsValidNumber(string valueStr)
-        {
-            return double.TryParse(valueStr, out _);
-        }
-
         private async Task GeneratePdfReportAsync(Database.Models.Region parentRegion, Database.Models.Region childRegion, string[] parentDataLines, string[] childDataLines, string[] comparisonResult, string fileName)
         {
             try
@@ -198,69 +200,55 @@ namespace DemographicApp.Pages
 
                 await Task.Run(() =>
                 {
-                    using (var stream = new FileStream(pdfPath, FileMode.Create))
+                using (var writer = new PdfWriter(pdfPath))
+                {
+                    using (var pdf = new PdfDocument(writer))
                     {
-                        if (stream == null)
-                        {
-                            throw new NullReferenceException("File stream is null.");
-                        }
+                        var document = new Document(pdf, iText.Kernel.Geom.PageSize.A4);
+                        document.SetMargins(20, 20, 20, 20);
 
-                        var document = new Document(PageSize.A4);
-                        if (document == null)
-                        {
-                            throw new NullReferenceException("Document is null.");
-                        }
+                        var fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                        var font = PdfFontFactory.CreateFont(fontPath, iText.IO.Font.PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
 
-                        var writer = PdfWriter.GetInstance(document, stream);
-                        if (writer == null)
-                        {
-                            throw new NullReferenceException("PdfWriter instance is null.");
-                        }
+                            var titleFont = new Style()
+                                .SetFont(font)
+                                .SetFontSize(16)
+                                .SetBold();
 
-                        document.Open();
+                            var regularFont = new Style()
+                                .SetFont(font)
+                                .SetFontSize(12);
 
-                        string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
-                        var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                        var titleFont = new iTextSharp.text.Font(baseFont, 16, iTextSharp.text.Font.BOLD);
-                        var regularFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.NORMAL);
-
-                        foreach (var line in parentDataLines)
-                        {
-                            Paragraph paragraph = new Paragraph(line, titleFont)
+                            foreach (var line in parentDataLines)
                             {
-                                SpacingAfter = 10f
-                            };
-                            document.Add(paragraph);
-                        }
+                                var paragraph = new Paragraph(line).AddStyle(titleFont);
+                                paragraph.SetMarginBottom(10);
+                                document.Add(paragraph);
+                            }
 
-                        document.NewPage();
+                            document.Add(new AreaBreak());
 
-                        foreach (var line in childDataLines)
-                        {
-                            Paragraph paragraph = new Paragraph(line, titleFont)
+                            foreach (var line in childDataLines)
                             {
-                                SpacingAfter = 10f
-                            };
-                            document.Add(paragraph);
-                        }
+                                var paragraph = new Paragraph(line).AddStyle(titleFont);
+                                paragraph.SetMarginBottom(10);
+                                document.Add(paragraph);
+                            }
 
-                        Paragraph comparisonHeader = new Paragraph("Результаты сравнения:", titleFont)
-                        {
-                            SpacingBefore = 20f,
-                            SpacingAfter = 10f
-                        };
-                        document.Add(comparisonHeader);
+                            var comparisonHeader = new Paragraph("Результаты сравнения:").AddStyle(titleFont);
+                            comparisonHeader.SetMarginTop(20);
+                            comparisonHeader.SetMarginBottom(10);
+                            document.Add(comparisonHeader);
 
-                        foreach (var line in comparisonResult)
-                        {
-                            Paragraph paragraph = new Paragraph(line, regularFont)
+                            foreach (var line in comparisonResult)
                             {
-                                SpacingAfter = 10f
-                            };
-                            document.Add(paragraph);
-                        }
+                                var paragraph = new Paragraph(line).AddStyle(regularFont);
+                                paragraph.SetMarginBottom(10);
+                                document.Add(paragraph);
+                            }
 
-                        document.Close();
+                            document.Close();
+                        }
                     }
                 });
 
