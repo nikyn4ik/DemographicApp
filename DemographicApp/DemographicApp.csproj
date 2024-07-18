@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
@@ -13,6 +12,7 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
+  <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>DemographicApp</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -57,6 +57,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Documentation\**" />
+	  <EmbeddedResource Remove="Documentation\**" />
+	  <MauiCss Remove="Documentation\**" />
+	  <MauiXaml Remove="Documentation\**" />
+	  <None Remove="Documentation\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="BouncyCastle" Version="1.8.9" />
 		<PackageReference Include="itext7" Version="8.0.4" />
@@ -80,6 +88,10 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Database\Database.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PRIResource Remove="Documentation\**" />
 	</ItemGroup>
 
 </Project>

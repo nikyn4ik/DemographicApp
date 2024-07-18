@@ -74,11 +74,11 @@ namespace DemographicApp.Pages
                     .ToListAsync();
 
                 var stats = new Dictionary<string, int>
-                {
-                    { "Population", demographicData.Sum(d => d.Population) },
-                    { "BirthRate", demographicData.Sum(d => d.BirthRate) },
-                    { "DeathRate", demographicData.Sum(d => d.DeathRate) }
-                };
+        {
+            { "Население", demographicData.Sum(d => d.Population) },
+            { "Рождаемость", demographicData.Sum(d => d.BirthRate) },
+            { "Смертность", demographicData.Sum(d => d.DeathRate) }
+        };
 
                 _regionStats[regionName] = stats;
             }
@@ -87,7 +87,6 @@ namespace DemographicApp.Pages
                 await DisplayAlert("Ошибка", $"Не удалось загрузить данные для региона '{regionName}': {ex.Message}", "OK");
             }
         }
-
         private void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var canvas = e.Surface.Canvas;
@@ -116,6 +115,11 @@ namespace DemographicApp.Pages
 
         private void DrawLineChart(SKCanvas canvas, string regionName, int width, int height, float scale, SKColor color)
         {
+            if (!_regionStats.ContainsKey(regionName))
+            {
+                return;
+            }
+
             var regionData = _regionStats[regionName];
             var categories = new[] { "Население", "Рождаемость", "Смертность" };
             var xInterval = width / (categories.Length + 1);
@@ -125,6 +129,11 @@ namespace DemographicApp.Pages
             for (int i = 0; i < categories.Length; i++)
             {
                 var category = categories[i];
+                if (!regionData.ContainsKey(category))
+                {
+                    continue;
+                }
+
                 var x = (i + 1) * xInterval;
                 var y = height - (regionData[category] * scale);
                 points[category] = new SKPoint(x, y);
@@ -148,7 +157,6 @@ namespace DemographicApp.Pages
                 canvas.DrawText($"{point.Key}: {regionData[point.Key]}", point.Value.X - 30, point.Value.Y - 10, paint);
             }
         }
-
         private void DrawLegend(SKCanvas canvas, int width, int height, Dictionary<string, SKColor> colors)
         {
             var paint = new SKPaint

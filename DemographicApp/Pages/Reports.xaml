@@ -5,25 +5,15 @@
 
     <VerticalStackLayout Padding="10">
         <Label 
-            Text="Ранее созданные отчёты"
-            FontSize="Large"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-
-        <CollectionView x:Name="ReportsCollectionView" 
-                        SelectionMode="Single" 
-                        SelectionChanged="OnReportSelected">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Padding="10" Margin="5" BorderColor="LightGray" CornerRadius="5">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Title}" FontSize="Medium" />
-                            <Label Text="{Binding GeneratedOn, StringFormat='Generated on: {0:MM/dd/yyyy}'}" FontSize="Small" TextColor="Gray" />
-                            <Label Text="{Binding GeneratedBy}" FontSize="Small" TextColor="Gray" />
-                        </VerticalStackLayout>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        Text="Ранее созданные отчёты"
+        FontSize="Large"
+        VerticalOptions="Center" 
+        HorizontalOptions="Center" />
+        <Label x:Name="NamePDF"
+               FontSize="14" 
+               TextColor="Black"
+               VerticalOptions="Start"/>
+        <CollectionView ItemsSource="{Binding ReportsCollection}" SelectionMode="Single" SelectionChanged="OnReportSelected">
+            </CollectionView>
     </VerticalStackLayout>
 </ContentPage>

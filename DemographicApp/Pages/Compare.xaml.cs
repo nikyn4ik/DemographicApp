@@ -7,6 +7,9 @@ using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
 using Style = iText.Layout.Style;
+using System.Diagnostics;
+using Cell = iText.Layout.Element.Cell;
+using TextAlignment = iText.Layout.Properties.TextAlignment;
 
 namespace DemographicApp.Pages
 {
@@ -111,6 +114,8 @@ namespace DemographicApp.Pages
                 {
                     _nextReportNumber++;
                 }
+
+                OpenPdf(reportFileName);
             }
             catch (Exception ex)
             {
@@ -191,7 +196,6 @@ namespace DemographicApp.Pages
 
             return comparisonResult;
         }
-
         private async Task GeneratePdfReportAsync(Database.Models.Region parentRegion, Database.Models.Region childRegion, string[] parentDataLines, string[] childDataLines, string[] comparisonResult, string fileName)
         {
             try
@@ -200,15 +204,14 @@ namespace DemographicApp.Pages
 
                 await Task.Run(() =>
                 {
-                using (var writer = new PdfWriter(pdfPath))
-                {
-                    using (var pdf = new PdfDocument(writer))
+                    using (var writer = new PdfWriter(pdfPath))
                     {
-                        var document = new Document(pdf, iText.Kernel.Geom.PageSize.A4);
-                        document.SetMargins(20, 20, 20, 20);
+                        using (var pdf = new PdfDocument(writer))
+                        {
+                            var document = new Document(pdf, iText.Kernel.Geom.PageSize.A4);
+                            document.SetMargins(20, 20, 20, 20);
 
-                        var fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
-                        var font = PdfFontFactory.CreateFont(fontPath, iText.IO.Font.PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+                            var font = PdfFontFactory.CreateFont("C:\\Windows\\Fonts\\arial.ttf");
 
                             var titleFont = new Style()
                                 .SetFont(font)
@@ -219,25 +222,58 @@ namespace DemographicApp.Pages
                                 .SetFont(font)
                                 .SetFontSize(12);
 
-                            foreach (var line in parentDataLines)
+                            var reportTitle = new Paragraph("Сравнительный отчет по регионам")
+                                .AddStyle(titleFont)
+                                .SetTextAlignment(TextAlignment.CENTER);
+                            document.Add(reportTitle);
+
+                            var table = new Table(UnitValue.CreatePercentArray(new float[] { 1, 1 }))
+                                .UseAllAvailableWidth()
+                                .SetMarginTop(20)
+                                .SetMarginBottom(20);
+
+                            for (int i = 0; i < parentDataLines.Length; i++)
                             {
-                                var paragraph = new Paragraph(line).AddStyle(titleFont);
-                                paragraph.SetMarginBottom(10);
-                                document.Add(paragraph);
+                                var parentLine = parentDataLines[i];
+                                var childLine = childDataLines[i];
+
+                                var parentLineParts = parentLine.Split(':');
+                                var childLineParts = childLine.Split(':');
+
+                                if (parentLineParts.Length < 2 || childLineParts.Length < 2)
+                                {
+                                    throw new FormatException($"Неверный формат данных в строке {i}: {parentLine} или {childLine}");
+                                }
+
+                                var parentLabel = parentLineParts[0].Trim();
+                                var childLabel = childLineParts[0].Trim();
+
+                                var parentValueStr = parentLineParts[1].Trim();
+                                var childValueStr = childLineParts[1].Trim();
+
+                                var parentParagraph = new Paragraph(parentLine)
+                                    .AddStyle(regularFont);
+                                var childParagraph = new Paragraph(childLine)
+                                    .AddStyle(regularFont);
+
+                                if (i == 0)
+                                {
+                                    parentParagraph = new Paragraph(parentLine)
+                                        .AddStyle(titleFont);
+                                    childParagraph = new Paragraph(childLine)
+                                        .AddStyle(titleFont);
+                                }
+
+                                table.AddCell(new Cell().Add(parentParagraph));
+                                table.AddCell(new Cell().Add(childParagraph));
                             }
 
-                            document.Add(new AreaBreak());
+                            document.Add(table);
 
-                            foreach (var line in childDataLines)
-                            {
-                                var paragraph = new Paragraph(line).AddStyle(titleFont);
-                                paragraph.SetMarginBottom(10);
-                                document.Add(paragraph);
-                            }
-
-                            var comparisonHeader = new Paragraph("Результаты сравнения:").AddStyle(titleFont);
-                            comparisonHeader.SetMarginTop(20);
-                            comparisonHeader.SetMarginBottom(10);
+                            var comparisonHeader = new Paragraph("Результаты сравнения:")
+                                .AddStyle(titleFont)
+                                .SetMarginTop(20)
+                                .SetMarginBottom(10);
                             document.Add(comparisonHeader);
 
                             foreach (var line in comparisonResult)
@@ -253,11 +289,31 @@ namespace DemographicApp.Pages
                 });
 
                 await DisplayAlert("Успех", $"PDF-отчет успешно сгенерирован и сохранен: {pdfPath}", "OK");
+
+                OpenPdf(pdfPath);
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Ошибка", $"Ошибка генерации PDF-отчета: {ex.Message}", "OK");
             }
         }
+
+        private void OpenPdf(string pdfPath)
+        {
+            try
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Launcher.OpenAsync(new OpenFileRequest
+                    {
+                        File = new ReadOnlyFile(pdfPath)
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                DisplayAlert("Ошибка", $"Ошибка при открытии PDF-отчета: {ex.Message}", "OK");
+            }
+            }
     }
 }

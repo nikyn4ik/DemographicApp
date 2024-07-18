@@ -8,44 +8,52 @@ namespace DemographicApp.Pages
     public partial class Reports : ContentPage
     {
         private readonly ApplicationContext _context;
+        private readonly string _reportsFolder;
 
-        public ObservableCollection<Report> ReportsCollection { get; set; }
+        public ObservableCollection<string> ReportsCollection { get; set; }
 
         public Reports()
         {
             InitializeComponent();
             _context = new ApplicationContext();
-            ReportsCollection = new ObservableCollection<Report>();
+            _reportsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Documentation", "Reports");
+            ReportsCollection = new ObservableCollection<string>();
             BindingContext = this;
 
             LoadReports();
         }
 
-        private async void LoadReports()
+        private void LoadReports()
         {
             try
             {
-                var reports = await _context.Reports.ToListAsync();
-                ReportsCollection.Clear();
-                foreach (var report in reports)
+                if (Directory.Exists(_reportsFolder))
                 {
-                    ReportsCollection.Add(report);
+                    var reportFiles = Directory.GetFiles(_reportsFolder, "*.pdf");
+                    ReportsCollection.Clear();
+                    foreach (var file in reportFiles)
+                    {
+                        ReportsCollection.Add(Path.GetFileName(file));
+                    }
+                }
+                else
+                {
+                    DisplayAlert("Ошибка", "Папка для отчетов не найдена", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Ошибка", $"Ошибка загрузки отчетов: {ex.Message}", "OK");
+                DisplayAlert("Ошибка", $"Ошибка загрузки отчетов: {ex.Message}", "OK");
             }
         }
 
         private async void OnReportSelected(object sender, SelectionChangedEventArgs e)
         {
-            var selectedReport = (Report)e.CurrentSelection.FirstOrDefault();
+            var selectedReport = (string)e.CurrentSelection.FirstOrDefault();
             if (selectedReport == null)
                 return;
 
-            string fileName = $"{selectedReport.Title}.pdf";
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Documentation", "Reports", fileName);
+            string filePath = Path.Combine(_reportsFolder, selectedReport);
 
             try
             {
