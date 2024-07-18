@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20240716133633_First")]
+    [Migration("20240717181039_First")]
     partial class First
     {
         /// <inheritdoc />
@@ -123,7 +123,6 @@ namespace Database.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("GeneratedBy")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("GeneratedOn")

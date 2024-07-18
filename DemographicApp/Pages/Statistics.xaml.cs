@@ -8,10 +8,9 @@ namespace DemographicApp.Pages
     public partial class Statistics : ContentPage
     {
         private readonly ApplicationContext _context;
-        private Dictionary<string, Dictionary<string, int>> regionStats;
-
-        private string selectedFirstRegion;
-        private string selectedSecondRegion;
+        private Dictionary<string, Dictionary<string, int>> _regionStats;
+        private string _selectedFirstRegion;
+        private string _selectedSecondRegion;
 
         public Statistics()
         {
@@ -33,16 +32,16 @@ namespace DemographicApp.Pages
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to load regions: {ex.Message}", "OK");
+                await DisplayAlert("Ошибка", $"Не удалось загрузить регионы: {ex.Message}", "OK");
             }
         }
 
         private void OnRegionSelected(object sender, EventArgs e)
         {
-            selectedFirstRegion = FirstRegionPicker.SelectedItem?.ToString();
-            selectedSecondRegion = SecondRegionPicker.SelectedItem?.ToString();
+            _selectedFirstRegion = FirstRegionPicker.SelectedItem?.ToString();
+            _selectedSecondRegion = SecondRegionPicker.SelectedItem?.ToString();
 
-            if (!string.IsNullOrWhiteSpace(selectedFirstRegion) && !string.IsNullOrWhiteSpace(selectedSecondRegion))
+            if (!string.IsNullOrWhiteSpace(_selectedFirstRegion) && !string.IsNullOrWhiteSpace(_selectedSecondRegion))
             {
                 LoadChartData();
             }
@@ -50,18 +49,18 @@ namespace DemographicApp.Pages
 
         private async void LoadChartData()
         {
-            regionStats = new Dictionary<string, Dictionary<string, int>>();
+            _regionStats = new Dictionary<string, Dictionary<string, int>>();
 
             try
             {
-                await LoadRegionData(selectedFirstRegion);
-                await LoadRegionData(selectedSecondRegion);
+                await LoadRegionData(_selectedFirstRegion);
+                await LoadRegionData(_selectedSecondRegion);
 
                 canvasView.InvalidateSurface();
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to load chart data: {ex.Message}", "OK");
+                await DisplayAlert("Ошибка", $"Не удалось загрузить данные для графика: {ex.Message}", "OK");
             }
         }
 
@@ -74,16 +73,18 @@ namespace DemographicApp.Pages
                     .Where(d => d.Region.Name == regionName)
                     .ToListAsync();
 
-                var stats = new Dictionary<string, int>();
-                stats["Population"] = demographicData.Sum(d => d.Population);
-                stats["BirthRate"] = demographicData.Sum(d => d.BirthRate);
-                stats["DeathRate"] = demographicData.Sum(d => d.DeathRate);
+                var stats = new Dictionary<string, int>
+                {
+                    { "Population", demographicData.Sum(d => d.Population) },
+                    { "BirthRate", demographicData.Sum(d => d.BirthRate) },
+                    { "DeathRate", demographicData.Sum(d => d.DeathRate) }
+                };
 
-                regionStats[regionName] = stats;
+                _regionStats[regionName] = stats;
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to load data for region '{regionName}': {ex.Message}", "OK");
+                await DisplayAlert("Ошибка", $"Не удалось загрузить данные для региона '{regionName}': {ex.Message}", "OK");
             }
         }
 
@@ -92,105 +93,81 @@ namespace DemographicApp.Pages
             var canvas = e.Surface.Canvas;
             canvas.Clear(SKColors.White);
 
-            if (regionStats == null || regionStats.Count < 2)
+            if (_regionStats == null || _regionStats.Count < 2)
                 return;
-
-            var paint = new SKPaint
-            {
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
 
             var width = e.Info.Width;
             var height = e.Info.Height;
-            var barWidth = width / (regionStats.Count * 4);
 
-            var maxPopulation = regionStats.Values.Select(s => s["Population"]).Max();
+            var maxPopulation = _regionStats.Values.Select(s => s["Population"]).Max();
             var scale = height / (float)maxPopulation;
 
-            var index = 0;
-            foreach (var stat in regionStats)
+            var colors = new Dictionary<string, SKColor>
             {
-                var x = index * 4 * barWidth;
-                DrawBar(canvas, stat.Key, x, height, barWidth, scale, SKColors.Blue, "Population", stat.Value["Population"]);
+                { _selectedFirstRegion, SKColors.Blue },
+                { _selectedSecondRegion, SKColors.Green }
+            };
 
-                x += barWidth;
-                DrawBar(canvas, stat.Key, x, height, barWidth, scale, SKColors.Green, "Birth Rate", stat.Value["BirthRate"]);
+            DrawLineChart(canvas, _selectedFirstRegion, width, height, scale, colors[_selectedFirstRegion]);
+            DrawLineChart(canvas, _selectedSecondRegion, width, height, scale, colors[_selectedSecondRegion]);
 
-                x += barWidth;
-                DrawBar(canvas, stat.Key, x, height, barWidth, scale, SKColors.Red, "Death Rate", stat.Value["DeathRate"]);
-
-                DrawDifference(canvas, stat.Key, x, height, barWidth, scale);
-
-                index++;
-            }
+            DrawLegend(canvas, width, height, colors);
         }
 
-        private void DrawBar(SKCanvas canvas, string regionName, float x, float height, float barWidth, float scale, SKColor color, string label, int value)
+        private void DrawLineChart(SKCanvas canvas, string regionName, int width, int height, float scale, SKColor color)
         {
-            var barHeight = value * scale;
-            var y = height - barHeight;
+            var regionData = _regionStats[regionName];
+            var categories = new[] { "Население", "Рождаемость", "Смертность" };
+            var xInterval = width / (categories.Length + 1);
+
+            var points = new Dictionary<string, SKPoint>();
+
+            for (int i = 0; i < categories.Length; i++)
+            {
+                var category = categories[i];
+                var x = (i + 1) * xInterval;
+                var y = height - (regionData[category] * scale);
+                points[category] = new SKPoint(x, y);
+            }
 
             var paint = new SKPaint
             {
-                Style = SKPaintStyle.Fill,
+                Style = SKPaintStyle.Stroke,
                 Color = color,
+                StrokeWidth = 3,
                 IsAntialias = true
             };
 
-            canvas.DrawRect(x, y, barWidth, barHeight, paint);
+            var pointsArray = points.Values.ToArray();
+            canvas.DrawPoints(SKPointMode.Lines, pointsArray, paint);
 
-            paint.TextSize = 20;
-            paint.Color = SKColors.Black;
-            canvas.DrawText($"{label}: {value}", x + barWidth / 4, height - 10, paint);
-            canvas.DrawText(regionName, x + barWidth / 4, height - 40, paint);
+            paint.Style = SKPaintStyle.Fill;
+            paint.TextSize = 30;
+            foreach (var point in points)
+            {
+                canvas.DrawText($"{point.Key}: {regionData[point.Key]}", point.Value.X - 30, point.Value.Y - 10, paint);
+            }
         }
 
-        private void DrawDifference(SKCanvas canvas, string regionName, float x, float height, float barWidth, float scale)
+        private void DrawLegend(SKCanvas canvas, int width, int height, Dictionary<string, SKColor> colors)
         {
-            if (!regionStats.ContainsKey(selectedFirstRegion) || !regionStats.ContainsKey(selectedSecondRegion))
-                return;
-
-            var firstRegionValue = regionStats[selectedFirstRegion];
-            var secondRegionValue = regionStats[selectedSecondRegion];
-
-            var differencePopulation = Math.Abs(firstRegionValue["Population"] - secondRegionValue["Population"]);
-            var differenceBirthRate = Math.Abs(firstRegionValue["BirthRate"] - secondRegionValue["BirthRate"]);
-            var differenceDeathRate = Math.Abs(firstRegionValue["DeathRate"] - secondRegionValue["DeathRate"]);
-
-            var differencePaint = new SKPaint
+            var paint = new SKPaint
             {
                 Style = SKPaintStyle.Fill,
-                Color = SKColors.Orange,
-                IsAntialias = true
-            };
-
-            var differenceTextPaint = new SKPaint
-            {
-                TextSize = 20,
                 Color = SKColors.Black,
+                TextSize = 30,
                 IsAntialias = true
             };
 
-            var barHeightPopulation = differencePopulation * scale;
-            var yPopulation = height - barHeightPopulation;
-
-            var barHeightBirthRate = differenceBirthRate * scale;
-            var yBirthRate = height - barHeightBirthRate;
-
-            var barHeightDeathRate = differenceDeathRate * scale;
-            var yDeathRate = height - barHeightDeathRate;
-
-            canvas.DrawRect(x, yPopulation, barWidth, barHeightPopulation, differencePaint);
-            canvas.DrawText($"Population: {differencePopulation}", x + barWidth / 4, yPopulation - 10, differenceTextPaint);
-
-            x += barWidth;
-            canvas.DrawRect(x, yBirthRate, barWidth, barHeightBirthRate, differencePaint);
-            canvas.DrawText($"Birth Rate: {differenceBirthRate}", x + barWidth / 4, yBirthRate - 10, differenceTextPaint);
-
-            x += barWidth;
-            canvas.DrawRect(x, yDeathRate, barWidth, barHeightDeathRate, differencePaint);
-            canvas.DrawText($"Death Rate: {differenceDeathRate}", x + barWidth / 4, yDeathRate - 10, differenceTextPaint);
+            int yOffset = 30;
+            foreach (var color in colors)
+            {
+                paint.Color = color.Value;
+                canvas.DrawRect(new SKRect(10, yOffset - 20, 50, yOffset), paint);
+                paint.Color = SKColors.Black;
+                canvas.DrawText(color.Key, 60, yOffset, paint);
+                yOffset += 40;
+            }
         }
     }
 }

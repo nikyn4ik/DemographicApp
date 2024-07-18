@@ -11,13 +11,31 @@ namespace DemographicApp.Pages
         private readonly ApplicationContext _context;
         private int _nextReportNumber = 1;
         private readonly object _lock = new object();
+        private readonly string _reportsFolder;
 
         public Compare()
         {
             InitializeComponent();
             _context = new ApplicationContext();
+            _reportsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Documentation", "Reports");
+            EnsureReportsFolderExists();
             SetNextReportNumber();
             LoadRegions();
+        }
+
+        private void EnsureReportsFolderExists()
+        {
+            try
+            {
+                if (!Directory.Exists(_reportsFolder))
+                {
+                    Directory.CreateDirectory(_reportsFolder);
+                }
+            }
+            catch (Exception ex)
+            {
+                DisplayAlert("Ошибка", $"Ошибка при создании папки для отчетов: {ex.Message}", "OK");
+            }
         }
 
         private void LoadRegions()
@@ -167,7 +185,6 @@ namespace DemographicApp.Pages
             return comparisonResult;
         }
 
-
         private bool IsValidNumber(string valueStr)
         {
             return double.TryParse(valueStr, out _);
@@ -177,34 +194,42 @@ namespace DemographicApp.Pages
         {
             try
             {
-                string projectRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string reportsFolder = Path.Combine(projectRoot, "Documentation", "Reports");
-                if (!Directory.Exists(reportsFolder))
-                {
-                    Directory.CreateDirectory(reportsFolder);
-                }
-
-                string pdfPath = Path.Combine(reportsFolder, fileName);
+                string pdfPath = Path.Combine(_reportsFolder, fileName);
 
                 await Task.Run(() =>
                 {
-                using (var stream = new FileStream(pdfPath, FileMode.Create))
-                {
-                    var document = new Document(PageSize.A4);
-                    PdfWriter.GetInstance(document, stream);
-                    document.Open();
-
-                    string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
-                    var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                    var titleFont = new iTextSharp.text.Font(baseFont, 16, iTextSharp.text.Font.BOLD);
-                    var regularFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.NORMAL);
-
-                    foreach (var line in parentDataLines)
+                    using (var stream = new FileStream(pdfPath, FileMode.Create))
                     {
-                        Paragraph paragraph = new Paragraph(line, titleFont)
+                        if (stream == null)
                         {
-                            SpacingAfter = 10f
-                        };
+                            throw new NullReferenceException("File stream is null.");
+                        }
+
+                        var document = new Document(PageSize.A4);
+                        if (document == null)
+                        {
+                            throw new NullReferenceException("Document is null.");
+                        }
+
+                        var writer = PdfWriter.GetInstance(document, stream);
+                        if (writer == null)
+                        {
+                            throw new NullReferenceException("PdfWriter instance is null.");
+                        }
+
+                        document.Open();
+
+                        string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
+                        var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                        var titleFont = new iTextSharp.text.Font(baseFont, 16, iTextSharp.text.Font.BOLD);
+                        var regularFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.NORMAL);
+
+                        foreach (var line in parentDataLines)
+                        {
+                            Paragraph paragraph = new Paragraph(line, titleFont)
+                            {
+                                SpacingAfter = 10f
+                            };
                             document.Add(paragraph);
                         }
 

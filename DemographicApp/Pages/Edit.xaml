@@ -3,10 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DemographicApp.Pages.Edit">
 
-    <StackLayout Padding="10">
-        <Label Text="Редактирование демографических данных" FontSize="Large" />
 
-        <Label Text="Имя региона" />
+    <VerticalStackLayout Padding="10">
+        <Label 
+        Text="Редактирование демографических данных"
+        FontSize="Large"
+        VerticalOptions="Center" 
+        HorizontalOptions="Center" />
+        
+        <StackLayout Padding="10">
+
+            <Label Text="Имя региона" />
         <Entry x:Name="RegionNameEntry" IsEnabled="False" />
 
         <Label Text="Население" />
@@ -26,5 +33,5 @@
 
         <Button Text="Сохранить" Clicked="SaveButtonClicked" />
     </StackLayout>
-
+    </VerticalStackLayout>
 </ContentPage>

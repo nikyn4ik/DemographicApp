@@ -5,7 +5,7 @@
 
     <VerticalStackLayout Padding="10">
         <Label 
-            Text="Проверка и расчет дельты"
+            Text="Расчёт дельты"
             FontSize="Large"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />

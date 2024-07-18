@@ -16,14 +16,22 @@ namespace DemographicApp
         private System.Timers.Timer _searchTimer;
 
         private bool _isAdmin;
-        public bool IsAdmin { get; set; }
+        public bool IsAdmin
+        {
+            get { return _isAdmin; }
+            set
+            {
+                _isAdmin = value;
+                OnPropertyChanged();
+            }
+        }
 
         public MainPage()
         {
             InitializeComponent();
             DemographicData = new ObservableCollection<DemographicData>();
             BindingContext = this;
-            IsAdmin = true;
+            IsAdmin = false;
             _searchTimer = new System.Timers.Timer
             {
                 Interval = 500,
@@ -38,7 +46,7 @@ namespace DemographicApp
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            LoadDataAsync(); 
+            LoadDataAsync();
         }
 
         private async void LoadDataAsync()
@@ -53,6 +61,7 @@ namespace DemographicApp
                     {
                         DemographicData.Add(item);
                     }
+                    SortData();
                     regionCollectionView.ItemsSource = DemographicData;
                 }
             }
@@ -64,9 +73,16 @@ namespace DemographicApp
 
         private async void AddButton(object sender, EventArgs e)
         {
-            var addPage = new Add();
-            addPage.RegionAdded += OnRegionAdded;
-            await Navigation.PushAsync(addPage);
+            if (IsAdmin)
+            {
+                var addPage = new Add();
+                addPage.RegionAdded += OnRegionAdded;
+                await Navigation.PushAsync(addPage);
+            }
+            else
+            {
+                await DisplayAlert("Ошибка", "Доступ запрещен. Только администраторы могут добавлять данные.", "OK");
+            }
         }
 
         private async void OnRegionAdded(object sender, EventArgs e)
@@ -170,11 +186,47 @@ namespace DemographicApp
                     {
                         DemographicData.Add(item);
                     }
+                    SortData();
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error", $"Search failed: {ex.Message}", "OK");
+            }
+        }
+
+        private void OnSortPickerSelectedIndexChanged(object sender, EventArgs e)
+        {
+            SortData();
+        }
+
+        private void SortData()
+        {
+            List<DemographicData> sortedData;
+
+            switch (sortPicker.SelectedIndex)
+            {
+                case 0:
+                    sortedData = DemographicData.OrderBy(d => d.Region.Name).ToList();
+                    break;
+                case 1:
+                    sortedData = DemographicData.OrderByDescending(d => d.Region.Name).ToList();
+                    break;
+                case 2:
+                    sortedData = DemographicData.OrderBy(d => d.Population).ToList();
+                    break;
+                case 3:
+                    sortedData = DemographicData.OrderByDescending(d => d.Population).ToList();
+                    break;
+                default:
+                    sortedData = DemographicData.ToList();
+                    break;
+            }
+
+            DemographicData.Clear();
+            foreach (var item in sortedData)
+            {
+                DemographicData.Add(item);
             }
         }
 
